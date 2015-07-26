@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:CRT.Test"
         mc:Ignorable="d"
         FontSize="12"
-        Title="Копирователь файлов" Height="205" Width="500" ResizeMode="NoResize">
+        Title="Копирователь файлов" Height="205" Width="500" ResizeMode="NoResize" Initialized="Window_Initialized">
     <Window.Resources>
         <Style x:Key="ToggleButtonPlayPauseStyle" TargetType="{x:Type ToggleButton}">
             <Setter Property="VerticalAlignment" Value="Top" />
@@ -44,7 +44,7 @@
             <Label x:Name="labelOutputFile_Copy" Content="Размер буфера (байты):" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
         </Grid>
         <ProgressBar x:Name="progressBarFileCopying" HorizontalAlignment="Left" Height="25" Margin="359,126,0,0" VerticalAlignment="Top" Width="113"/>
-        <Button x:Name="buttonPickOutputFile_Copy" Content="Копировать" Margin="359,95,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="113" Height="26" Click="buttonPickOutputFile_Click"/>
+        <Button x:Name="buttonCopyFile" Content="Копировать" Margin="359,95,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="113" Height="26" Click="buttonCopyFile_Click"/>
         <Grid Margin="234,95,0,0" HorizontalAlignment="Left" Width="88" Height="26" VerticalAlignment="Top">
             <Label x:Name="labelOutputFile_Copy1" Content="Чтение:" VerticalAlignment="Top" HorizontalAlignment="Left" Width="53" Margin="0,-1,0,0"/>
             <ToggleButton x:Name="toggleButtonPlayPauseFileReading" 

@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CRT.Test
 {
-    public delegate void Complet(bool ifComplete);
+    public delegate void Complete(bool ifComplete);
     public delegate void Progress(string message, int procent);
 
     class FileCopyist
@@ -15,7 +11,7 @@ namespace CRT.Test
         /// <summary>
         /// Событие на завершение копирования файла
         /// </summary>
-        public event Complet OnComplete;
+        public event Complete OnComplete;
         /// <summary>
         /// Событие во время копирования
         /// </summary>
@@ -24,12 +20,12 @@ namespace CRT.Test
         /// <summary>
         /// Размер буфера в байтах
         /// </summary>
-        public int BufferLenght { get; set; }
+        public int bufferLenght { get; set; }
 
-        public FileCopyist()
+        public FileCopyist(int buffLength)
         {
             //задаем размер буфера
-            BufferLenght = 1024;
+            bufferLenght = buffLength;
         }
 
         /// <summary>
@@ -43,7 +39,7 @@ namespace CRT.Test
             {
                 //Создаем буфер по размеру исходного файла
                 //В буфер будем записывать информацию из файла
-                Byte[] streamBuffer = new Byte[BufferLenght];
+                byte[] streamBuffer = new byte[bufferLenght];
                 //Общее количество считанных байт
                 long totalBytesRead = 0;
                 //Количество считываний
@@ -66,7 +62,7 @@ namespace CRT.Test
                             //Записываем в буфер streamBuffer BufferLenght байт
                             //bytesRead содержит количество записанных байт
                             //это количество не может быть больше заданного BufferLenght
-                            int bytesRead = sourceStream.Read(streamBuffer, 0, BufferLenght);
+                            int bytesRead = sourceStream.Read(streamBuffer, 0, bufferLenght);
 
                             //Если ничего не было считано
                             if (bytesRead == 0)
@@ -91,7 +87,7 @@ namespace CRT.Test
 
                             //Если количество считанных байт меньше буфера
                             //Значит это конец
-                            if (bytesRead < BufferLenght)
+                            if (bytesRead < bufferLenght)
                             {
                                 //Записываем информацию о процессе
                                 getInfo(totalBytesRead, sLenght);

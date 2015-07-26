@@ -8,6 +8,8 @@ namespace CRT.Test
     /// </summary>
     public partial class MainWindow : Window
     {
+        FileCopyist fileCopyist;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -67,9 +69,58 @@ namespace CRT.Test
             if (!char.IsDigit(e.Text, e.Text.Length - 1))
             {
                 e.Handled = true;
-
             }
         }
-        
+
+        private void buttonCopyFile_Click(object sender, RoutedEventArgs e)
+        {
+            BlockUI();
+            InitCopying();
+        }
+
+        private void BlockUI()
+        {
+            textBoxBufferSize.IsEnabled = false;
+            textBoxInputFile.IsEnabled = false;
+            textBoxOutputFile.IsEnabled = false;
+            buttonCopyFile.IsEnabled = false;
+            buttonPickInputFile.IsEnabled = false;
+            buttonPickOutputFile.IsEnabled = false;
+        }
+
+        private void InitCopying()
+        {
+            //задать размер буферa
+            fileCopyist = new FileCopyist(int.Parse(textBoxBufferSize.Text));
+
+            fileCopyist.OnComplete += new Complete(fc_OnComplete);
+            fileCopyist.OnProgress += new Progress(fc_OnProgress);
+
+            fileCopyist.CopyFile(textBoxInputFile.Text, textBoxOutputFile.Text);
+        }
+
+        void fc_OnProgress(string message, int procent)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                progressBarFileCopying.Value = procent;
+            });
+        }
+
+        void fc_OnComplete(bool ifComplete)
+        {
+            if (ifComplete)
+                MessageBox.Show("Копирование файла успешно завершено");
+            else
+                MessageBox.Show("Копирование файла завершено с ошибкой");
+        }
+
+        private void Window_Initialized(object sender, System.EventArgs e)
+        {
+#if DEBUG
+            textBoxInputFile.Text = @"C:\Users\andrewio\Desktop\TEST.txt";
+            textBoxOutputFile.Text = @"C:\Users\andrewio\Desktop\TEST_copy.txt";
+#endif
+        }
     }
 }
