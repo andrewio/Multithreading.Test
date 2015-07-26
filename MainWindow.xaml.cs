@@ -60,5 +60,16 @@ namespace CRT.Test
                 textBoxOutputFile.Text = dlg.FileName;
             }
         }
+        
+        private void textBoxBufferSize_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            //Поддерживаем только цифровой ввод
+            if (!char.IsDigit(e.Text, e.Text.Length - 1))
+            {
+                e.Handled = true;
+
+            }
+        }
+        
     }
 }

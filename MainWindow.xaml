@@ -5,14 +5,58 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CRT.Test"
         mc:Ignorable="d"
-        Title="Копирователь файлов" Height="350" Width="534.484" ResizeMode="NoResize">
-    <Grid>
-        <TextBox x:Name="textBoxInputFile" Margin="131,13,0,0" TextWrapping="Wrap" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="279"/>
-        <Label x:Name="labelInputFile" Content="Исходный файл:" Margin="10,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="127"/>
-        <TextBox x:Name="textBoxOutputFile" Margin="131,53,0,0" TextWrapping="Wrap" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="279"/>
-        <Label x:Name="labelOutputFile" Content="Выходной файл:" Margin="10,50,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="127"/>
-        <Button x:Name="buttonPickInputFile" Content="Выбрать" Margin="0,13,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Height="23" Click="buttonPickInputFile_Click"/>
-        <Button x:Name="buttonPickOutputFile" Content="Задать" Margin="0,53,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Height="23" Click="buttonPickOutputFile_Click"/>
+        FontSize="12"
+        Title="Копирователь файлов" Height="205" Width="500" ResizeMode="NoResize">
+    <Window.Resources>
+        <Style x:Key="ToggleButtonPlayPauseStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="FontFamily" Value="Times New Roman" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
 
+            <Setter Property="Content" Value="►"/>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Content" Value="❚❚"/>
+                    <Setter Property="Foreground" Value="DarkGreen"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Window.Resources>
+    <Grid>
+        <Grid Margin="10,10,0,0" HorizontalAlignment="Left" Width="462" Height="26" VerticalAlignment="Top">
+            <TextBox x:Name="textBoxInputFile" Margin="109,3,0,0" TextWrapping="Wrap" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="248" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <Label x:Name="labelInputFile" Content="Исходный файл:" VerticalAlignment="Top" HorizontalAlignment="Left" Width="127"/>
+            <Button x:Name="buttonPickInputFile" Content="Выбрать" Margin="0,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Height="23" Click="buttonPickInputFile_Click"/>
+        </Grid>
+        <Grid Margin="10,50,0,0" HorizontalAlignment="Left" Width="462" Height="26" VerticalAlignment="Top">
+            <TextBox x:Name="textBoxOutputFile" Margin="109,3,0,0" TextWrapping="Wrap" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="248" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <Label x:Name="labelOutputFile" Content="Выходной файл:" VerticalAlignment="Top" HorizontalAlignment="Left" Width="127"/>
+            <Button x:Name="buttonPickOutputFile" Content="Задать" Margin="0,3,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Height="23" Click="buttonPickOutputFile_Click"/>
+        </Grid>
+        <Grid Margin="10,94,0,0" HorizontalAlignment="Left" Width="187" Height="26" VerticalAlignment="Top">
+            <TextBox x:Name="textBoxBufferSize" Margin="146,1,0,0" TextWrapping="Wrap" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="41" PreviewTextInput="textBoxBufferSize_PreviewTextInput" Text="8" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <Label x:Name="labelOutputFile_Copy" Content="Размер буфера (байты):" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
+        </Grid>
+        <ProgressBar x:Name="progressBarFileCopying" HorizontalAlignment="Left" Height="25" Margin="359,126,0,0" VerticalAlignment="Top" Width="113"/>
+        <Button x:Name="buttonPickOutputFile_Copy" Content="Копировать" Margin="359,95,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="113" Height="26" Click="buttonPickOutputFile_Click"/>
+        <Grid Margin="234,95,0,0" HorizontalAlignment="Left" Width="88" Height="26" VerticalAlignment="Top">
+            <Label x:Name="labelOutputFile_Copy1" Content="Чтение:" VerticalAlignment="Top" HorizontalAlignment="Left" Width="53" Margin="0,-1,0,0"/>
+            <ToggleButton x:Name="toggleButtonPlayPauseFileReading" 
+        		Style="{StaticResource ToggleButtonPlayPauseStyle}"
+        		Margin="58,0,0,0" HorizontalAlignment="Left" Width="30"   />
+        </Grid>
+        <Grid Margin="234,125,0,0" HorizontalAlignment="Left" Width="88" Height="26" VerticalAlignment="Top">
+            <Label x:Name="labelOutputFile_Copy2" Content="Запись:" VerticalAlignment="Top" HorizontalAlignment="Left" Width="53"/>
+            <ToggleButton x:Name="toggleButtonPlayPauseFileWriting" 
+        		Style="{StaticResource ToggleButtonPlayPauseStyle}"
+        		Margin="58,1,0,0"   />
+        </Grid>
+        <ProgressBar x:Name="progressBarBufferState" HorizontalAlignment="Left" Height="25" Margin="14,125,0,0" VerticalAlignment="Top" Width="183"/>
     </Grid>
 </Window>
