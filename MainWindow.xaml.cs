@@ -22,10 +22,18 @@ namespace CRT.Test
         //Кол-во байтов, прочитанных за одну итерацию в потоку чтения  
         //и готовых для записи в потоке записи
         int numBytesForCopy = 0;
+        //Сколько осталось обработать байтов для завершения копирования
+        int numBytesToProcess = 0;
+        //Происходит ли копирование 
+        bool isCopying = false;
+        bool isCanReading = true;
+        bool isCanWriting = true;
 
         string inputFilePath;
         string outputFilePath;
         int fileSize;
+
+        List<UIElement> mustLockOnCopy;
 
         public MainWindow()
         {
@@ -38,7 +46,6 @@ namespace CRT.Test
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
             dlg.FileName = "Document"; // Default file name
             dlg.DefaultExt = ".txt"; // Default file extension
-            dlg.Filter = "Text documents (.txt)|*.txt"; // Filter files by extension
 
             // Show open file dialog box
             bool? result = dlg.ShowDialog();
@@ -70,7 +77,6 @@ namespace CRT.Test
             Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
             dlg.FileName = AddMarkToFileName(textBoxInputFile.Text, "_copy");
             dlg.DefaultExt = ".txt"; 
-            dlg.Filter = "Text documents (.txt)|*.txt";
             
             bool? result = dlg.ShowDialog();
             
@@ -93,11 +99,28 @@ namespace CRT.Test
         {
             //Начать копирование
             //--------------------------------
+            isCopying = true;
+
             inputFilePath = textBoxInputFile.Text;
             outputFilePath = textBoxOutputFile.Text;
+
+            //сколько байтов осталось прочитать до конца файла
+            FileInfo fileInfo = new FileInfo(inputFilePath);
+            fileSize = (int)fileInfo.Length;
+            numBytesToProcess = fileSize;
+            
+            progressBarFileCopying.Minimum = 0;
+            progressBarFileCopying.Maximum = fileSize;
+
+            progressBarBufferState.Minimum = 0;
+            progressBarBufferState.Maximum = bufferSize;
+
+            numBytesForCopy = 0;
+            isBufferFull = false;
+
             if (File.Exists(inputFilePath)) //Исходный файл существует
             {
-                BlockUIOnCopy();
+                SetEnabledStateForCriticalUI(false);
 
                 //Задать размер буфера 
                 bufferSize = int.Parse(textBoxBufferSize.Text);
@@ -122,66 +145,80 @@ namespace CRT.Test
         {
             using (FileStream fileStream = new FileStream(inputFilePath, FileMode.Open, FileAccess.Read))
             {
-                //сколько байтов осталось прочитать до конца файла
-                fileSize = (int)fileStream.Length;
-                int numBytesToRead = fileSize;
                 
-                while (numBytesToRead > 0)
+                while (numBytesToProcess > 0)
                 {
                     lock (_locker)
                     {
-                        if (!isBufferFull)
+                        if (!isBufferFull && isCanReading)
                         {
                             //Читаем блок данных в буфер
                             numBytesForCopy = fileStream.Read(buffer, 0, bufferSize);
                             isBufferFull = true;
+
+                            //уменьшаем число байтов, нужных для прочтения всего файла 
+                            numBytesToProcess -= numBytesForCopy; 
                         }
                     }
 
-                    //уменьшаем число байтов, нужных для прочтения всего файла 
-                    numBytesToRead -= numBytesForCopy;
+                    ShowBufferState();
 
                 }//файл прочтен
-                
+
             }
-
-            MessageBox.Show("Копирование завершено.");
-
         }
 
         void WritingHandler()
         {
             using (FileStream destinationStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
             {
-                lock (_locker)
+                //Пока есть байты для записи
+                while (isCopying)
                 {
-                    if (isBufferFull)
+                    lock (_locker)
                     {
-                        destinationStream.Write(buffer, 0, numBytesForCopy);
-                        isBufferFull = false;
+                        if (isBufferFull && isCanWriting)
+                        {
+                            destinationStream.Write(buffer, 0, numBytesForCopy);
+                            isBufferFull = false;
+                            if (numBytesToProcess == 0)
+                                isCopying = false;
+                        }
                     }
+                    ShowCopyingProgress();
+
                 }
             }
+
+            SetEnabledStateForCriticalUI(true);
 
         }
 
         //Заблокировать UI для предотвращения редактирования во время копирования
-        private void BlockUIOnCopy()
+        private void SetEnabledStateForCriticalUI(bool isUnlocked)
         {
-            List<UIElement> mustLock =  new List<UIElement>()
+            Dispatcher.Invoke(() =>
             {
-                textBoxBufferSize,
-                textBoxInputFile,
-                textBoxOutputFile,
-                buttonCopyFile,
-                buttonPickInputFile,
-                buttonPickOutputFile
-            };
+                mustLockOnCopy.ForEach(t => t.IsEnabled = isUnlocked);
+            });
 
-            mustLock.ForEach(t => t.IsEnabled = false);
         }
-        
-   
+
+        void ShowCopyingProgress()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                progressBarFileCopying.Value = fileSize - numBytesToProcess;
+            });
+        }
+
+        void ShowBufferState()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                progressBarBufferState.Value = numBytesForCopy;
+            });
+        }
 
         private void Window_Initialized(object sender, System.EventArgs e)
         {
@@ -190,6 +227,15 @@ namespace CRT.Test
             textBoxInputFile.Text = @"C:\Users\andrewio\Desktop\TESTs.txt";
             textBoxOutputFile.Text = AddMarkToFileName(textBoxInputFile.Text, "_copy");
 #endif
+            mustLockOnCopy = new List<UIElement>()
+            {
+                textBoxBufferSize,
+                textBoxInputFile,
+                textBoxOutputFile,
+                buttonCopyFile,
+                buttonPickInputFile,
+                buttonPickOutputFile
+            };
 
         }
     }
