@@ -18,10 +18,10 @@
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
 
-            <Setter Property="Content" Value="►"/>
+            <Setter Property="Content" Value="❚❚"/>
             <Style.Triggers>
                 <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Content" Value="❚❚"/>
+                    <Setter Property="Content" Value="►"/>
                     <Setter Property="Foreground" Value="DarkGreen"/>
                 </Trigger>
             </Style.Triggers>
@@ -52,11 +52,12 @@
             <Label x:Name="labelOutputFile_Copy1" Content="Чтение:" VerticalAlignment="Top" HorizontalAlignment="Left" Width="53"/>
             <ToggleButton x:Name="toggleButtonPlayPauseFileReading" 
         		Style="{StaticResource ToggleButtonPlayPauseStyle}"
-        		HorizontalAlignment="Left" Width="30"   Margin="58,1,0,0"   />
+        		HorizontalAlignment="Left" Width="30"   Margin="58,1,0,0" 
+                          Click="toggleButtonPlayPauseFileReading_Checked"   />
             <Label x:Name="labelOutputFile_Copy2" Content="Запись:" VerticalAlignment="Top" HorizontalAlignment="Left" Width="53" Margin="0,31,0,0"/>
             <ToggleButton x:Name="toggleButtonPlayPauseFileWriting" 
         		Style="{StaticResource ToggleButtonPlayPauseStyle}"
-        		Margin="58,32,0,0"   />
+        		Margin="58,32,0,0" Click="toggleButtonPlayPauseFileWriting_Checked"   />
         </Grid>
 
     </Grid>

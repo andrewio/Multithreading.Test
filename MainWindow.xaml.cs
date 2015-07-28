@@ -97,10 +97,8 @@ namespace CRT.Test
 
         private void buttonCopyFile_Click(object sender, RoutedEventArgs e)
         {
-            //Начать копирование
-            //--------------------------------
             isCopying = true;
-
+            //Пути к файлам
             inputFilePath = textBoxInputFile.Text;
             outputFilePath = textBoxOutputFile.Text;
 
@@ -109,21 +107,23 @@ namespace CRT.Test
             fileSize = (int)fileInfo.Length;
             numBytesToProcess = fileSize;
             
-            progressBarFileCopying.Minimum = 0;
-            progressBarFileCopying.Maximum = fileSize;
-
-            progressBarBufferState.Minimum = 0;
-            progressBarBufferState.Maximum = bufferSize;
-
             numBytesForCopy = 0;
             isBufferFull = false;
+            bufferSize = int.Parse(textBoxBufferSize.Text);
 
-            if (File.Exists(inputFilePath)) //Исходный файл существует
+            if (File.Exists(inputFilePath) && bufferSize > 0)
             {
+                progressBarFileCopying.Minimum = 0;
+                progressBarFileCopying.Maximum = fileSize;
+                progressBarFileCopying.Value = 0;
+
+                progressBarBufferState.Minimum = 0;
+                progressBarBufferState.Maximum = bufferSize;
+                progressBarBufferState.Value = 0;
+
                 SetEnabledStateForCriticalUI(false);
 
                 //Задать размер буфера 
-                bufferSize = int.Parse(textBoxBufferSize.Text);
                 buffer = new byte[bufferSize];
 
                 //поток 1 : чтение из файла и запись в буфер
@@ -136,7 +136,7 @@ namespace CRT.Test
             }
             else
             {
-                MessageBox.Show("Неверный путь к файлу!");
+                MessageBox.Show("Неверные данные!");
             }
             
         }
@@ -157,11 +157,14 @@ namespace CRT.Test
                             isBufferFull = true;
 
                             //уменьшаем число байтов, нужных для прочтения всего файла 
-                            numBytesToProcess -= numBytesForCopy; 
+                            numBytesToProcess -= numBytesForCopy;
+
+                            //В секции lock для того, чтобы видеть в реальном времени
+                            //занятость буфера 
+                            ShowBufferState();
                         }
                     }
 
-                    ShowBufferState();
 
                 }//файл прочтен
 
@@ -183,6 +186,10 @@ namespace CRT.Test
                             isBufferFull = false;
                             if (numBytesToProcess == 0)
                                 isCopying = false;
+                            
+                            //Для того, чтобы видеть занятость буфера при паузе записи
+                            numBytesForCopy = 0;
+                            ShowBufferState();
                         }
                     }
                     ShowCopyingProgress();
@@ -237,6 +244,16 @@ namespace CRT.Test
                 buttonPickOutputFile
             };
 
+        }
+
+        private void toggleButtonPlayPauseFileReading_Checked(object sender, RoutedEventArgs e)
+        {
+            isCanReading = !isCanReading;
+        }
+
+        private void toggleButtonPlayPauseFileWriting_Checked(object sender, RoutedEventArgs e)
+        {
+            isCanWriting = !isCanWriting;
         }
     }
 }
