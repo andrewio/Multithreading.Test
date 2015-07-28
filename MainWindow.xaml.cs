@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using System.Windows;
 
 namespace CRT.Test
@@ -8,11 +10,22 @@ namespace CRT.Test
     /// </summary>
     public partial class MainWindow : Window
     {
+        //Работа с буфером и с флагами в монопольном режиме
+        static readonly object _locker = new object();
+
         //Буфер для копирования порции данных из исходного файла в дубликат
         byte[] buffer;
-
+        //Занят ли буфер
+        bool isBufferFull = false;
         //Размер буфера
         int bufferSize;
+        //Кол-во байтов, прочитанных за одну итерацию в потоку чтения  
+        //и готовых для записи в потоке записи
+        int numBytesForCopy = 0;
+
+        string inputFilePath;
+        string outputFilePath;
+        int fileSize;
 
         public MainWindow()
         {
@@ -80,29 +93,92 @@ namespace CRT.Test
         {
             //Начать копирование
             //--------------------------------
-            if (File.Exists(textBoxInputFile.Text)) //Исходный файл существует
+            inputFilePath = textBoxInputFile.Text;
+            outputFilePath = textBoxOutputFile.Text;
+            if (File.Exists(inputFilePath)) //Исходный файл существует
             {
-                BlockUI();
+                BlockUIOnCopy();
 
                 //Задать размер буфера 
                 bufferSize = int.Parse(textBoxBufferSize.Text);
                 buffer = new byte[bufferSize];
 
                 //поток 1 : чтение из файла и запись в буфер
+                Thread reader = new Thread(ReadingHandler);
+                reader.Start();
 
                 //поток 2 : чтение из буфера и запись в файл
+                Thread writer = new Thread(WritingHandler);
+                writer.Start();
+            }
+            else
+            {
+                MessageBox.Show("Неверный путь к файлу!");
             }
             
         }
 
-        private void BlockUI()
+        void ReadingHandler()
         {
-            textBoxBufferSize.IsEnabled = false;
-            textBoxInputFile.IsEnabled = false;
-            textBoxOutputFile.IsEnabled = false;
-            buttonCopyFile.IsEnabled = false;
-            buttonPickInputFile.IsEnabled = false;
-            buttonPickOutputFile.IsEnabled = false;
+            using (FileStream fileStream = new FileStream(inputFilePath, FileMode.Open, FileAccess.Read))
+            {
+                //сколько байтов осталось прочитать до конца файла
+                fileSize = (int)fileStream.Length;
+                int numBytesToRead = fileSize;
+                
+                while (numBytesToRead > 0)
+                {
+                    lock (_locker)
+                    {
+                        if (!isBufferFull)
+                        {
+                            //Читаем блок данных в буфер
+                            numBytesForCopy = fileStream.Read(buffer, 0, bufferSize);
+                            isBufferFull = true;
+                        }
+                    }
+
+                    //уменьшаем число байтов, нужных для прочтения всего файла 
+                    numBytesToRead -= numBytesForCopy;
+
+                }//файл прочтен
+                
+            }
+
+            MessageBox.Show("Копирование завершено.");
+
+        }
+
+        void WritingHandler()
+        {
+            using (FileStream destinationStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write))
+            {
+                lock (_locker)
+                {
+                    if (isBufferFull)
+                    {
+                        destinationStream.Write(buffer, 0, numBytesForCopy);
+                        isBufferFull = false;
+                    }
+                }
+            }
+
+        }
+
+        //Заблокировать UI для предотвращения редактирования во время копирования
+        private void BlockUIOnCopy()
+        {
+            List<UIElement> mustLock =  new List<UIElement>()
+            {
+                textBoxBufferSize,
+                textBoxInputFile,
+                textBoxOutputFile,
+                buttonCopyFile,
+                buttonPickInputFile,
+                buttonPickOutputFile
+            };
+
+            mustLock.ForEach(t => t.IsEnabled = false);
         }
         
    
@@ -110,9 +186,9 @@ namespace CRT.Test
         private void Window_Initialized(object sender, System.EventArgs e)
         {
 
-#if DEBUF
-            textBoxInputFile.Text = @"C:\Users\andrewio\Desktop\TEST.txt";
-            textBoxOutputFile.Text = @"C:\Users\andrewio\Desktop\TEST_copy.txt";
+#if DEBUG
+            textBoxInputFile.Text = @"C:\Users\andrewio\Desktop\TESTs.txt";
+            textBoxOutputFile.Text = AddMarkToFileName(textBoxInputFile.Text, "_copy");
 #endif
 
         }
