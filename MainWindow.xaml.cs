@@ -8,7 +8,11 @@ namespace CRT.Test
     /// </summary>
     public partial class MainWindow : Window
     {
-        FileCopyist fileCopyist;
+        //Буфер для копирования порции данных из исходного файла в дубликат
+        byte[] buffer;
+
+        //Размер буфера
+        int bufferSize;
 
         public MainWindow()
         {
@@ -74,8 +78,21 @@ namespace CRT.Test
 
         private void buttonCopyFile_Click(object sender, RoutedEventArgs e)
         {
-            BlockUI();
-            InitCopying();
+            //Начать копирование
+            //--------------------------------
+            if (File.Exists(textBoxInputFile.Text)) //Исходный файл существует
+            {
+                BlockUI();
+
+                //Задать размер буфера 
+                bufferSize = int.Parse(textBoxBufferSize.Text);
+                buffer = new byte[bufferSize];
+
+                //поток 1 : чтение из файла и запись в буфер
+
+                //поток 2 : чтение из буфера и запись в файл
+            }
+            
         }
 
         private void BlockUI()
@@ -87,40 +104,17 @@ namespace CRT.Test
             buttonPickInputFile.IsEnabled = false;
             buttonPickOutputFile.IsEnabled = false;
         }
-
-        private void InitCopying()
-        {
-            //задать размер буферa
-            fileCopyist = new FileCopyist(int.Parse(textBoxBufferSize.Text));
-
-            fileCopyist.OnComplete += new Complete(fc_OnComplete);
-            fileCopyist.OnProgress += new Progress(fc_OnProgress);
-
-            fileCopyist.CopyFile(textBoxInputFile.Text, textBoxOutputFile.Text);
-        }
-
-        void fc_OnProgress(string message, int procent)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                progressBarFileCopying.Value = procent;
-            });
-        }
-
-        void fc_OnComplete(bool ifComplete)
-        {
-            if (ifComplete)
-                MessageBox.Show("Копирование файла успешно завершено");
-            else
-                MessageBox.Show("Копирование файла завершено с ошибкой");
-        }
+        
+   
 
         private void Window_Initialized(object sender, System.EventArgs e)
         {
-#if DEBUG
+
+#if DEBUF
             textBoxInputFile.Text = @"C:\Users\andrewio\Desktop\TEST.txt";
             textBoxOutputFile.Text = @"C:\Users\andrewio\Desktop\TEST_copy.txt";
 #endif
+
         }
     }
 }
